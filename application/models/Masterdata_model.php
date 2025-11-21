@@ -33,40 +33,32 @@ class masterdata_model extends CI_Model {
         return $query;
     }
 
-    public function get_member_by_id($id)
-    {
-        $query = $this->db->query("select * from ms_member where member_id='".$id."'");
-        $result = $query->result();
-        return $result;
-    }
-
-
-    public function delete_member($member_id)
+    public function delete_customer($customer_id)
     {
         $this->db->set('is_active', 'N');
-        $this->db->where('member_id ', $member_id);
-        $this->db->update('ms_member');
+        $this->db->where('customer_id ', $customer_id);
+        $this->db->update('ms_customer');
     }
 
-    public function edit_member($data_edit, $member_id)
+    public function edit_customer($data_update, $customer_id)
     {
-        $this->db->set($data_edit);
-        $this->db->where('member_id', $member_id);
-        $this->db->update('ms_member');
+        $this->db->set($data_update);
+        $this->db->where('customer_id', $customer_id);
+        $this->db->update('ms_customer');
     }
     
-    public function save_member($data_insert)
+    public function save_customer($data_insert)
     {
         $this->db->trans_start();
-        $this->db->insert('ms_member', $data_insert);
+        $this->db->insert('ms_customer', $data_insert);
         $insert_id = $this->db->insert_id();
         $this->db->trans_complete();
         return  $insert_id;
     }
 
-    public function last_member_code()
+    public function last_customer_code()
     {
-        $query = $this->db->query("select member_code from ms_member order by member_id desc limit 1");
+        $query = $this->db->query("select customer_code from ms_customer order by customer_id desc limit 1");
         $result = $query->result();
         return $result;
     }

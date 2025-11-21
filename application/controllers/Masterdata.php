@@ -68,7 +68,7 @@ class Masterdata extends CI_Controller {
 			foreach ($list as $field) {
 
 				if($check_auth[0]->edit == 'Y'){
-					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" data-bs-toggle="modal" data-bs-target="#exampleModaledit" data-id="'.$field['customer_id'].'" data-name="'.$field['customer_id'].'"><i class="fas fa-edit sizing-fa"></i></button> ';
+					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" data-bs-toggle="modal" data-bs-target="#exampleModaledit" data-id="'.$field['customer_id'].'" data-codes="'.$field['customer_code'].'" data-name="'.$field['customer_name'].'" data-phone="'.$field['customer_phone'].'" data-address="'.$field['customer_address'].'"><i class="fas fa-edit sizing-fa"></i></button> ';
 				}else{
 					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-edit sizing-fa"></i></button> <button type="button" class="btn btn-icon btn-info btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-cog sizing-fa"></i></button> ';
 				}
@@ -103,106 +103,39 @@ class Masterdata extends CI_Controller {
 		}
 	}
 
-	public function save_member()
+	public function save_customer()
 	{	
 
-		$modul = 'Member';
+		$modul = 'Customer';
 		$check_auth = $this->check_auth($modul);
 		if($check_auth[0]->add == 'Y'){
-			$screenshoot 				= $this->input->post('screenshoot');
-			$member_name 				= $this->input->post('member_name');
-			$member_phone 				= $this->input->post('member_phone');
-			$member_nik 				= $this->input->post('member_nik');
-			$member_dob					= $this->input->post('member_dob');
-			$member_email	 			= $this->input->post('member_email');
-			$member_address 			= $this->input->post('member_address');
-			$member_gender 				= $this->input->post('member_gender');
-			$member_urgent_phone	 	= $this->input->post('member_urgent_phone');
-			$member_urgent_sibiling 	= $this->input->post('member_urgent_sibiling');
-			$member_desc 				= $this->input->post('member_desc');
-
-
+			$customer_name 				= $this->input->post('customer_name');
+			$customer_phone 			= $this->input->post('customer_phone');
+			$customer_address 			= $this->input->post('customer_address');
 			$user_id 		   			= $_SESSION['user_id'];
 
-			$check_member_nik = $this->masterdata_model->check_member_nik($member_nik);
-			if($check_member_nik != null){
-				$msg = "Nik Sudah Di Gunakan";
+			if($customer_name == null){
+				$msg = "Nama pelanggan Harus Di isi";
 				echo json_encode(['code'=>0, 'result'=>$msg]);die();
 			}
 
-			$check_member_phone = $this->masterdata_model->check_member_phone($member_phone);
-			if($check_member_phone != null){
-				$msg = "No Hp Sudah Di Gunakan";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-
-			$check_member_email = $this->masterdata_model->check_member_email($member_email);
-			if($check_member_email != null){
-				$msg = "Email Sudah Di Gunakan";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-
-			if($member_name == null){
-				$msg = "Nama member Harus Di isi";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-			if($member_phone == null){
-				$msg = "No Hp Harus Di isi";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-			$maxCode = $this->masterdata_model->last_member_code();
+			$maxCode = $this->masterdata_model->last_customer_code();
 			if ($maxCode == NULL) {
-				$last_code = '000001';
+				$last_code = 'C000001';
 			} else {
-				$maxCode = $maxCode[0]->member_code;
-				$last_code = substr($maxCode, -6);
-				$last_code = substr('00000' . strval(floatval($last_code) + 1), -6);
+				$maxCode = $maxCode[0]->customer_code;
+				$last_code = substr($maxCode, -7);
+				$last_code = substr('C00000' . strval(floatval($last_code) + 1), -7);
 			}
-			if($_FILES['screenshoot']['name'] == null){
-				$new_image_name = 'default.png';
-			}else{
-				$new_image_name = $last_code.$this->generateRandomString().'.png';
-				$config['upload_path'] = './assets/member/';
-				$config['allowed_types'] = 'gif|jpg|png|jpeg|PNG';
-				$config['file_name'] = $new_image_name;
-				$this->load->library('upload', $config);
-				if (!$this->upload->do_upload('screenshoot')) 
-				{
-					$error = array('error' => $this->upload->display_errors());
-					echo json_encode(['code'=>0, 'result'=>$error]);die();
-				} 
-				else
-				{
-					$data = array('image_metadata' => $this->upload->data());
-				}
-			}
-
+			
 			$data_insert = array(
-				'member_code'	       		=> $last_code,
-				'member_name'	       		=> $member_name,
-				'member_phone'	   			=> $member_phone,
-				'member_address'	    	=> $member_address,
-				'member_dob'	       		=> $member_dob,
-				'member_gender'	    		=> $member_gender,
-				'member_nik'				=> $member_nik,
-				'member_email'	    		=> $member_email,
-				'member_urgent_phone'		=> $member_urgent_phone,
-				'member_urgent_sibiling'	=> $member_urgent_sibiling,
-				'member_desc'				=> $member_desc,
-				'member_image'				=> $new_image_name
+				'customer_code'	       		=> $last_code,
+				'customer_name'	       		=> $customer_name,
+				'customer_phone'	   		=> $customer_phone,
+				'customer_address'	    	=> $customer_address,
 			);
 
-			$this->masterdata_model->save_member($data_insert);
-
-			$data_insert_act = array(
-				'activity_table_desc'	       => 'Tambah Master member',
-				'activity_table_user'	       => $user_id,
-			);
-			$this->global_model->save($data_insert_act);
+			$this->masterdata_model->save_customer($data_insert);
 			$msg = "Succes Input";
 			echo json_encode(['code'=>200, 'result'=>$msg]);
 			die();
@@ -210,6 +143,38 @@ class Masterdata extends CI_Controller {
 			$msg = "No Access";
 			echo json_encode(['code'=>0, 'result'=>$msg]);
 		}	
+	}
+
+	public function edit_customer()
+	{
+		$modul = 'Customer';
+		$check_auth = $this->check_auth($modul);
+		if($check_auth[0]->edit == 'Y'){
+			$customer_id 				= $this->input->post('customer_id');
+			$customer_name 				= $this->input->post('customer_name');
+			$customer_phone 			= $this->input->post('customer_phone');
+			$customer_address 			= $this->input->post('customer_address');
+			$user_id 		   			= $_SESSION['user_id'];
+
+			if($customer_name == null){
+				$msg = "Nama pelanggan Harus Di isi";
+				echo json_encode(['code'=>0, 'result'=>$msg]);die();
+			}
+
+			$data_update = array(
+				'customer_name'	       		=> $customer_name,
+				'customer_phone'	   		=> $customer_phone,
+				'customer_address'	    	=> $customer_address,
+			);
+
+			$this->masterdata_model->edit_customer($data_update, $customer_id);
+			$msg = "Succes Input";
+			echo json_encode(['code'=>200, 'result'=>$msg]);
+			die();
+		}else{
+			$msg = "No Access";
+			echo json_encode(['code'=>0, 'result'=>$msg]);
+		}
 	}
 
 	function generateRandomString($length = 10) {
