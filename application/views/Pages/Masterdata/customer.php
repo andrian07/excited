@@ -187,6 +187,42 @@ require DOC_ROOT_PATH . $this->config->item('footer');
     });
   }
 
+  function deletes(id)
+  {
+    Swal.fire({
+      title: 'Konfirmasi?',
+      text: "Apakah Anda Yakin Menghapus Data Customer ?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Hapus'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          type: "POST",
+          url: "<?php echo base_url(); ?>Masterdata/delete_customer",
+          dataType: "json",
+          data: {id:id},
+          success : function(data){
+            if (data.code == "200"){
+              $('#customer-list').DataTable().ajax.reload();
+              let title = 'Delete Data';
+              let message = 'Data Berhasil Di Hapus';
+              let state = 'info';
+              notif_success(title, message, state);
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.msg,
+              })
+            }
+          }
+        });
+      }
+    })
+  }
 
   $('#savecustomer').click(function(e){
     e.preventDefault();
@@ -206,6 +242,7 @@ require DOC_ROOT_PATH . $this->config->item('footer');
           let message = 'Data Berhasil Di Tambah';
           let state = 'info';
           notif_success(title, message, state);
+          clear();
           $('#myModal').modal('hide');
         } else {
           Swal.fire({
@@ -237,6 +274,7 @@ require DOC_ROOT_PATH . $this->config->item('footer');
           let message = 'Data Berhasil Di Ubah';
           let state = 'info';
           notif_success(title, message, state);
+          clear();
           $('#exampleModaledit').modal('hide');
         } else {
           Swal.fire({
@@ -265,6 +303,19 @@ require DOC_ROOT_PATH . $this->config->item('footer');
     modal.find('#customer_address_edit').val(address)
   })
 
+
+  function clear()
+  {
+    $("#customer_name").val("");
+    $("#customer_phone").val("");
+    $("#customer_address").val("");
+
+    $("#customer_id_edit").val("");
+    $("#customer_code_edit").val("");
+    $("#customer_name_edit").val("");
+    $("#customer_phone_edit").val("");
+    $("#customer_address_edit").val("");
+  }
 
   $('#reload').click(function(e){
     e.preventDefault();

@@ -33,7 +33,7 @@ class Masterdata extends CI_Controller {
 		}
 	}
 
-	// member //
+	// customer //
 
 	public function customer()
 	{
@@ -123,9 +123,9 @@ class Masterdata extends CI_Controller {
 			if ($maxCode == NULL) {
 				$last_code = 'C000001';
 			} else {
-				$maxCode = $maxCode[0]->customer_code;
-				$last_code = substr($maxCode, -7);
-				$last_code = substr('C00000' . strval(floatval($last_code) + 1), -7);
+				$maxCode = $maxCode[0]->product_code;
+				$last_code = substr($maxCode, -6);
+				$last_code = 'C'.substr('000000' . strval(floatval($last_code) + 1), -6);
 			}
 			
 			$data_insert = array(
@@ -168,7 +168,7 @@ class Masterdata extends CI_Controller {
 			);
 
 			$this->masterdata_model->edit_customer($data_update, $customer_id);
-			$msg = "Succes Input";
+			$msg = "Succes Edit";
 			echo json_encode(['code'=>200, 'result'=>$msg]);
 			die();
 		}else{
@@ -177,127 +177,14 @@ class Masterdata extends CI_Controller {
 		}
 	}
 
-	function generateRandomString($length = 10) {
-		$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		$charactersLength = strlen($characters);
-		$randomString = '';
-
-		for ($i = 0; $i < $length; $i++) {
-			$randomString .= $characters[random_int(0, $charactersLength - 1)];
-		}
-
-		return $randomString;
-	}
-
-	public function edit_member()
+	public function delete_customer()
 	{
-		$modul = 'Member';
-		$check_auth = $this->check_auth($modul);
-		if($check_auth[0]->edit == 'Y'){
-			$screenshoot 				= $this->input->post('screenshoot_edit');
-			$member_id   				= $this->input->post('member_id_edit');
-			$member_code 				= $this->input->post('member_code_edit');
-			$member_name 				= $this->input->post('member_name_edit');
-			$member_phone 				= $this->input->post('member_phone_edit');
-			$member_nik 				= $this->input->post('member_nik_edit');
-			$member_dob 		 		= $this->input->post('member_dob_edit');
-			$member_email   			= $this->input->post('member_email_edit');
-			$member_address      		= $this->input->post('member_address_edit');
-			$member_gender      		= $this->input->post('member_gender_edit');
-			$member_urgent_phone	 	= $this->input->post('member_urgent_phone_edit');
-			$member_urgent_sibiling 	= $this->input->post('member_urgent_sibiling_edit');
-			$member_desc 				= $this->input->post('member_desc_edit');
-
-			$user_id 		   			= $_SESSION['user_id'];
-
-			if($member_name == null){
-				$msg = "Nama member Harus Di isi";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-			if($member_phone == null){
-				$msg = "No Hp Harus Di isi";
-				echo json_encode(['code'=>0, 'result'=>$msg]);die();
-			}
-
-			$get_member_by_id = $this->masterdata_model->get_member_by_id($member_id);
-
-			$check_image_name = $get_member_by_id[0]->member_image;
-
-			if($_FILES['screenshoot_edit']['name'] == null){
-				$new_image_name = $get_member_by_id[0]->member_image;
-			}else{
-				if($check_image_name != $_FILES['screenshoot_edit']['name']){
-					$new_image_name = $member_code.$this->generateRandomString().'.png';
-					$config['upload_path'] = './assets/member/';
-					$config['allowed_types'] = 'gif|jpg|png|jpeg|PNG';
-					$config['file_name'] = $new_image_name;
-					$this->load->library('upload', $config);
-					if (!$this->upload->do_upload('screenshoot_edit')) 
-					{
-						$error = array('error' => $this->upload->display_errors());
-						echo json_encode(['code'=>0, 'result'=>$error]);die();
-					} 
-					else
-					{
-						$data = array('image_metadata' => $this->upload->data());
-					}
-				}else{
-					$new_image_name = $check_image_name;
-				}
-			}
-
-			$data_edit = array(
-				'member_name'	       		=> $member_name,
-				'member_phone'	   			=> $member_phone,
-				'member_address'	    	=> $member_address,
-				'member_dob'	       		=> $member_dob,
-				'member_gender'	    		=> $member_gender,
-				'member_nik'				=> $member_nik,
-				'member_email'	    		=> $member_email,
-				'member_image'				=> $new_image_name,
-				'member_urgent_phone'		=> $member_urgent_phone,
-				'member_urgent_sibiling'	=> $member_urgent_sibiling,
-				'member_desc'				=> $member_desc,
-			);
-
-			$this->masterdata_model->edit_member($data_edit, $member_id);
-
-			$data_insert_act = array(
-				'activity_table_desc'	       => 'Ubah Master Member '.$member_name,
-				'activity_table_user'	       => $user_id,
-			);
-			$this->global_model->save($data_insert_act);
-
-			$msg = "Succes Input";
-			echo json_encode(['code'=>200, 'result'=>$msg]);
-			die();
-		}else{
-			$msg = "No Access";
-			echo json_encode(['code'=>0, 'result'=>$msg]);
-		}	
-	}
-
-	public function get_member_id()
-	{
-		$id = $this->input->post('id');
-		$get_member_by_id['get_member_by_id'] = $this->masterdata_model->get_member_by_id($id);
-		echo json_encode(['code'=>200, 'result'=>$get_member_by_id]);
-	}
-
-	public function delete_member()
-	{
-		$modul = 'Member';
+		$modul = 'Customer';
 		$check_auth = $this->check_auth($modul);
 		if($check_auth[0]->delete == 'Y'){
-			$member_id  	= $this->input->post('id');
+			$customer_id  	= $this->input->post('id');
 			$user_id 		= $_SESSION['user_id'];
-			$this->masterdata_model->delete_member($member_id);
-			$data_insert_act = array(
-				'activity_table_desc'	       => 'Hapus Master member',
-				'activity_table_user'	       => $user_id,
-			);
-			$this->global_model->save($data_insert_act);
+			$this->masterdata_model->delete_customer($customer_id);
 			$msg = "Succes Delete";
 			echo json_encode(['code'=>200, 'result'=>$msg]);
 			die();
@@ -306,22 +193,8 @@ class Masterdata extends CI_Controller {
 			echo json_encode(['code'=>0, 'result'=>$msg]);
 		}	
 	}
-
-	public function get_edit_member()
-	{
-		$modul = 'Member';
-		$check_auth = $this->check_auth($modul);
-		if($check_auth[0]->view == 'Y'){
-			$id = $this->input->post('id');
-			$detail_edit_member = $this->masterdata_model->get_member_by_id($id);
-			echo json_encode(['code'=>200, 'result'=>$detail_edit_member]);die();
-		}else{
-			$msg = "No Access";
-			echo json_encode(['code'=>0, 'result'=>$msg]);die();
-		}
-	}
 	
-	// end member //
+	// end customer //
 
 
 	// product //
@@ -359,7 +232,7 @@ class Masterdata extends CI_Controller {
 			foreach ($list as $field) {
 
 				if($check_auth[0]->edit == 'Y'){
-					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" data-bs-toggle="modal" data-bs-target="#exampleModaledit" data-id="'.$field['product_id'].'" data-name="'.$field['product_name'].'"><i class="fas fa-edit sizing-fa"></i></button> ';
+					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" data-bs-toggle="modal" data-bs-target="#exampleModaledit" data-id="'.$field['product_id'].'" data-codes="'.$field['product_code'].'" data-name="'.$field['product_name'].'" data-price="'.$field['product_price'].'"><i class="fas fa-edit sizing-fa"></i></button> ';
 				}else{
 					$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-edit sizing-fa"></i></button> <button type="button" class="btn btn-icon btn-info btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-cog sizing-fa"></i></button> ';
 				}
@@ -393,8 +266,79 @@ class Masterdata extends CI_Controller {
 		}
 	}
 
-	
-	// end member //
+	public function save_product()
+	{	
+
+		$modul = 'Product';
+		$check_auth = $this->check_auth($modul);
+		if($check_auth[0]->add == 'Y'){
+			$product_name 				= $this->input->post('product_name');
+			$product_price 				= $this->input->post('product_price_val');
+			$user_id 		   			= $_SESSION['user_id'];
+			if($product_name == null){
+				$msg = "Nama Produk Harus Di isi";
+				echo json_encode(['code'=>0, 'result'=>$msg]);die();
+			}
+			if($product_price <= 0){
+				$msg = "Harga Jual Harus Di isi";
+				echo json_encode(['code'=>0, 'result'=>$msg]);die();
+			}
+			$maxCode = $this->masterdata_model->last_product_code();
+
+			if ($maxCode == NULL) {
+				$last_code = 'P000001';
+			} else {
+				$maxCode = $maxCode[0]->product_code;
+				$last_code = substr($maxCode, -6);
+				$last_code = 'P'.substr('000000' . strval(floatval($last_code) + 1), -6);
+			}
+			
+			$data_insert = array(
+				'product_code'	    => $last_code,
+				'product_name'	    => $product_name,
+				'product_price'	   	=> $product_price,
+			);
+			$this->masterdata_model->save_product($data_insert);
+			$msg = "Succes Input";
+			echo json_encode(['code'=>200, 'result'=>$msg]);
+			die();
+		}else{
+			$msg = "No Access";
+			echo json_encode(['code'=>0, 'result'=>$msg]);
+		}	
+	}
+
+	public function edit_product()
+	{
+		$modul = 'Product';
+		$check_auth = $this->check_auth($modul);
+		if($check_auth[0]->edit == 'Y'){
+			$product_id 				= $this->input->post('product_id');
+			$product_name 				= $this->input->post('product_name');
+			$product_price 				= $this->input->post('product_price_val');
+			$user_id 		   			= $_SESSION['user_id'];
+			if($product_name == null){
+				$msg = "Nama Produk Harus Di isi";
+				echo json_encode(['code'=>0, 'result'=>$msg]);die();
+			}
+			if($product_price <= 0){
+				$msg = "Harga Jual Harus Di isi";
+				echo json_encode(['code'=>0, 'result'=>$msg]);die();
+			}
+			$data_update = array(
+				'product_name'	    => $product_name,
+				'product_price'	   	=> $product_price,
+			);
+			$this->masterdata_model->edit_product($data_update, $product_id);
+			$msg = "Succes Edit";
+			echo json_encode(['code'=>200, 'result'=>$msg]);
+			die();
+		}else{
+			$msg = "No Access";
+			echo json_encode(['code'=>0, 'result'=>$msg]);
+		}
+	}
+	// end product //
 
 
 

@@ -35,7 +35,7 @@ class masterdata_model extends CI_Model {
 
     public function delete_customer($customer_id)
     {
-        $this->db->set('is_active', 'N');
+        $this->db->set('customer_active', 'N');
         $this->db->where('customer_id ', $customer_id);
         $this->db->update('ms_customer');
     }
@@ -94,8 +94,29 @@ class masterdata_model extends CI_Model {
         return $query;
     }
 
-  
-    //end member
+    public function edit_product($data_update, $product_id)
+    {
+        $this->db->set($data_update);
+        $this->db->where('product_id', $product_id);
+        $this->db->update('ms_product');
+    }
+    
+    public function save_product($data_insert)
+    {
+        $this->db->trans_start();
+        $this->db->insert('ms_product', $data_insert);
+        $insert_id = $this->db->insert_id();
+        $this->db->trans_complete();
+        return  $insert_id;
+    }
+    
+    public function last_product_code()
+    {
+        $query = $this->db->query("select product_code from ms_product order by product_id desc limit 1");
+        $result = $query->result();
+        return $result;
+    }
+    //end product
 
     
 }
