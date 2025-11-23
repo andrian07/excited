@@ -56,7 +56,8 @@ class Sales extends CI_Controller {
 		if($check_auth[0]->view == 'Y'){
 			$check_auth['check_auth'] = $check_auth;
 			$customer_list['customer_list'] = $this->global_model->customer_list();
-			$data['data'] = array_merge($check_auth, $customer_list);
+			$ekspedisi_list['ekspedisi_list'] = $this->global_model->ekspedisi_list();
+			$data['data'] = array_merge($check_auth, $customer_list, $ekspedisi_list);
 			$this->load->view('Pages/Sales/addsales', $data);
 		}else{
 			$msg = "No Access";
@@ -137,6 +138,111 @@ class Sales extends CI_Controller {
 		//$get_detail_register['get_detail_register'] = $this->register_model->get_detail_register($transaction_register_id);
 		//$data['data'] = array_merge($get_register, $get_detail_register);
 		$this->load->view('Pages/Sales/dispatch');
+	}
+
+
+	public function temp_sales_list()
+	{
+		$modul = 'Sales';
+		$check_auth = $this->check_auth($modul);
+		if($check_auth[0]->view == 'Y'){
+			$search 			= $this->input->post('search');
+			$length 			= $this->input->post('length');
+			$start 			  	= $this->input->post('start');
+
+			if($search != null){
+				$search = $search['value'];
+			}
+			$list = $this->transaction_model->temp_sales_list($search, $length, $start)->result_array();
+			$count_list = $this->transaction_model->temp_sales_list_count($search)->result_array();
+			$total_row = $count_list[0]['total_row'];
+			$data = array();
+			$no = $_POST['start'];
+			foreach ($list as $field) {
+
+				$edit = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-edit sizing-fa"></i></button> <button type="button" class="btn btn-icon btn-info btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-cog sizing-fa"></i></button> ';
+				$delete = '<button type="button" class="btn btn-icon btn-warning btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-edit sizing-fa"></i></button> <button type="button" class="btn btn-icon btn-info btn-sm mb-2-btn" disabled="disabled"><i class="fas fa-cog sizing-fa"></i></button> ';
+
+				$no++;
+				$row = array();
+				$row[] = $field['product_code'];
+				$row[] = $field['product_name'];
+				$row[] = 'Rp. '.number_format($field['temp_price']);
+				$row[] = $field['temp_qty'];
+				$row[] = 'Rp. '.number_format($field['temp_total']);
+				$row[] = $edit.$delete;
+				$data[] = $row;
+			}
+
+			$output = array(
+				"draw" => $_POST['draw'],
+				"recordsTotal" => $total_row,
+				"recordsFiltered" => $total_row,
+				"data" => $data,
+			);
+			echo json_encode($output);
+		}else{
+			$msg = "No Access";
+			echo json_encode(['code'=>0, 'result'=>$msg]);die();
+		}		
+	}
+
+	public function get_customer()
+	{
+		$customer_id = $this->input->post('customer_id');
+		$get_customer = $this->global_model->get_customer($customer_id);
+		echo json_encode(['code'=>200, 'result'=>$get_customer]);die();
+	}
+
+	public function search_product()
+	{	
+		$supplier_id = $this->input->get('id');
+		$keyword = $this->input->get('term');
+		$result = ['success' => FALSE, 'num_product' => 0, 'data' => [], 'message' => ''];
+		if (!($keyword == '' || $keyword == NULL)) {
+			$find = $this->global_model->search_product($keyword)->result_array();
+			$find_result = [];
+			foreach ($find as $row) {
+				$diplay_text = $row['product_name'];
+				$find_result[] = [
+					'id'                  => $row['product_id'],
+					'value'               => $diplay_text,
+					'product_price'       => $row['product_price'],
+				];
+			}
+			$result = ['success' => TRUE, 'num_product' => count($find_result), 'data' => $find_result, 'message' => ''];
+		}
+		echo json_encode($result);
+	} 
+
+	public function save_product()
+	{	
+
+		$product_id 				= $this->input->post('product_id');
+		$temp_price_val 			= $this->input->post('temp_price_val');
+		$temp_qty 					= $this->input->post('temp_qty');
+		$temp_total_val 			= $this->input->post('temp_total_val');
+		$user_id 		   			= $_SESSION['user_id'];
+
+		if($product_id == null){
+			$msg = "Nama Produk Harus Di isi";
+			echo json_encode(['code'=>0, 'result'=>$msg]);die();
+		}
+		if($temp_qty <= 0){
+			$msg = "Qty Harus Di isi";
+			echo json_encode(['code'=>0, 'result'=>$msg]);die();
+		}
+
+
+		$data_insert = array(
+			'product_code'	    => $last_code,
+			'product_name'	    => $product_name,
+			'product_price'	   	=> $product_price,
+		);
+		$this->masterdata_model->save_product($data_insert);
+		$msg = "Succes Input";
+		echo json_encode(['code'=>200, 'result'=>$msg]);
+		die();
 	}
 	// end sales //
 

@@ -19,6 +19,31 @@ class global_model extends CI_Model {
         return $result;
     }
 
+    public function ekspedisi_list(){
+        $query = $this->db->query("select * from ms_ekspedisi where ms_ekspedisi_active = 'Y'");
+        $result = $query->result();
+        return $result;
+    }
+
+    public function get_customer($customer_id)
+    {
+        $query = $this->db->query("select * from ms_customer where customer_id = '".$customer_id."'");
+        $result = $query->result();
+        return $result;
+    }
+
+    public function search_product($keyword)
+    {
+        $this->db->select('*');
+        $this->db->from('ms_product');
+        $this->db->where('product_active', 'y');
+        if($keyword != null){
+            $this->db->where('product_name like "%'.$keyword.'%"');
+        }
+        $this->db->limit(50);
+        $query = $this->db->get();
+        return $query;
+    }
 }
 
 ?>
